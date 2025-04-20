@@ -1,12 +1,35 @@
 import time
+import sys
+import os
+import csv
+from datetime import datetime
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+default_limit=1000000
+sys.setrecursionlimit(default_limit*10)
+
+from DataStructures.List import array_list as al
+from DataStructures.List.list_iterator import iterator
+from DataStructures.Tree import binary_search_tree as rbt
+
+data_dir = os.path.dirname(os.path.realpath("__file__")) + "\\Data\\"
+
+csv.field_size_limit(2147483647)
 
 def new_logic():
     """
     Crea el catalogo para almacenar las estructuras de datos
     """
     #TODO: Llama a las funciónes de creación de las estructuras de datos
-    pass
-
+    catalog = {
+        "report_crimes": al.new_list(), 
+        "report_crimes_Date_Rptd": rbt.new_map(), 
+        "report_crimes_DATE_OCC": rbt.new_map(),
+        "report_crimes_AREA": rbt.new_map(),
+        "report_crimes_Vict_Age": rbt.new_map()
+        }
+    return catalog
 
 # Funciones para la carga de datos
 
@@ -15,7 +38,60 @@ def load_data(catalog, filename):
     Carga los datos del reto
     """
     # TODO: Realizar la carga de datos
-    pass
+    star_time = get_time()
+    report_crimes = catalog["report_crimes"]
+    report_crimes_Date_Rptd = catalog["report_crimes_Date_Rptd"]
+    report_crimes_DATE_OCC = catalog["report_crimes_DATE_OCC"]
+    report_crimes_AREA = catalog["report_crimes_AREA"]
+    report_crimes_Vict_Age = catalog["report_crimes_Vict_Age"]
+    file_path = data_dir + filename
+    with open(file_path, encoding="utf-8") as file:
+        input_file = csv.DictReader(file)
+        for row in input_file:
+            row["DR_NO"] = int(row["DR_NO"])
+            row["TIME OCC"] = int(row["TIME OCC"])
+            row["AREA"] = int(row["AREA"])
+            row["Rpt Dist No"] = int(row["Rpt Dist No"])
+            row["Part 1-2"] = int(row["Part 1-2"])
+            row["Crm Cd"] = int(row["Crm Cd"])
+            row["Vict Age"] = int(row["Vict Age"])
+            row["Premis Cd"] = float(row["Premis Cd"])
+            row["LAT"] = float(row["LAT"])
+            row["LON"] = float(row["LON"])
+            row["Date Rptd"] = datetime.strptime(row["Date Rptd"], "%m/%d/%Y %I:%M:%S %p").timestamp()
+            row["DATE OCC"] = datetime.strptime(row["DATE OCC"], "%m/%d/%Y %I:%M:%S %p").timestamp()
+            
+            if not rbt.contains(report_crimes_Date_Rptd, row["Date Rptd"]):
+                lista1 = al.new_list()
+                al.add_last(lista1, row)
+                rbt.put(report_crimes_Date_Rptd, row["Date Rptd"], lista1)
+            else:
+                al.add_last(rbt.get(report_crimes_Date_Rptd, row["Date Rptd"]), row)
+                
+            if not rbt.contains(report_crimes_DATE_OCC, row["DATE OCC"]):
+                lista2 = al.new_list()
+                al.add_last(lista2, row)
+                rbt.put(report_crimes_DATE_OCC, row["DATE OCC"], lista2)
+            else:
+                al.add_last(rbt.get(report_crimes_DATE_OCC, row["DATE OCC"]), row)
+                
+            if not rbt.contains(report_crimes_AREA, row["AREA"]):
+                lista3 = al.new_list()
+                al.add_last(lista3, row)
+                rbt.put(report_crimes_AREA, row["AREA"], lista3)
+            else:
+                al.add_last(rbt.get(report_crimes_AREA, row["AREA"]), row)
+            
+            if not rbt.contains(report_crimes_Vict_Age, row["Vict Age"]):
+                lista4 = al.new_list()
+                al.add_last(lista4, row)
+                rbt.put(report_crimes_Vict_Age, row["Vict Age"], lista4)
+            else:
+                al.add_last(rbt.get(report_crimes_Vict_Age, row["Vict Age"]), row)
+            al.add_last(report_crimes, row)
+    end_time = get_time()
+    time = delta_time(star_time, end_time)
+    return round(time, 3), al.size(report_crimes), get_first_last_info(report_crimes, "carga_datos")
 
 # Funciones de consulta sobre el catálogo
 
@@ -24,8 +100,34 @@ def get_data(catalog, id):
     Retorna un dato por su ID.
     """
     #TODO: Consulta en las Llamar la función del modelo para obtener un dato
-    pass
+    return rbt.get(catalog["report_crimes"], id)
 
+def extract_info(report, requerimiento):
+    if requerimiento == "carga_datos":
+        return {
+            "DR_NO": report["DR_NO"],
+            "Date Rptd": report["Date Rptd"],
+            "DATE OCC": report["DATE OCC"],
+            "AREA NAME": report["AREA NAME"],
+            "Crm Cd": report["Crm Cd"],
+        }
+    return report
+            
+def get_first_last_info(reports_list, requerimiento, num = 10):
+    total = al.size(reports_list)
+    new_list_return = al.new_list()       
+    if total <= num:
+        for i in range(total):
+            rec = al.get_element(reports_list, i)
+            al.add_last(new_list_return, extract_info(rec, requerimiento))
+    else:
+        for i in range(5):
+            rec = al.get_element(reports_list, i)
+            al.add_last(new_list_return, extract_info(rec, requerimiento))
+        for i in range(total - 5, total):
+            rec = al.get_element(reports_list, i)
+            al.add_last(new_list_return, extract_info(rec, requerimiento))
+    return new_list_return
 
 def req_1(catalog):
     """
@@ -105,3 +207,11 @@ def delta_time(start, end):
     """
     elapsed = float(end - start)
     return elapsed
+
+catalog = new_logic()
+
+load_data(catalog, "Crime_in_LA_100.csv")
+
+print(catalog)
+
+
