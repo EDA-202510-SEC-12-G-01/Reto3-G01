@@ -1,6 +1,10 @@
+import time
 import sys
 import os
 import tabulate as tb
+from datetime import datetime
+import tabulate as tb
+
 
 default_limit=100000
 sys.setrecursionlimit(default_limit*10)
@@ -9,6 +13,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from DataStructures.List.list_iterator import iterator
 from App import logic
+from DataStructures.List import array_list as al
 
 def new_logic():
     """
@@ -48,18 +53,51 @@ def load_data(control, archivo):
 
 
 def print_data(control, id):
-    """
-        Función que imprime un dato dado su ID
-    """
-    #TODO: Realizar la función para imprimir un elemento
-    pass
+    reporte = logic.get_data(control, id)
+    if not reporte:
+        print(f"No se encontró un reporte con ID: {id}")
+        return
+
+    info = logic.extract_info(reporte, "carga_datos")
+
+    print("==== Información del Reporte ====")
+    print(f"ID (DR_NO): {info['DR_NO']}")
+    print(f"Fecha Reportada (Date Rptd): {datetime.fromtimestamp(info['Date Rptd'])}")
+    print(f"Fecha de Ocurrencia (DATE OCC): {datetime.fromtimestamp(info['DATE OCC'])}")
+    print(f"Nombre del Área: {info['AREA NAME']}")
+    print(f"Código de Crimen (Crm Cd): {info['Crm Cd']}")
+    print("=================================")
 
 def print_req_1(control):
-    """
-        Función que imprime la solución del Requerimiento 1 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 1
-    pass
+    fecha_inicial = input("Ingrese la fecha inicial (YYYY-MM-DD): ")
+    fecha_final = input("Ingrese la fecha final (YYYY-MM-DD): ")
+    start_time = logic.get_time()
+    resultado = logic.req_1(control, fecha_inicial, fecha_final)
+    end_time = logic.get_time()
+    duracion = logic.delta_time(start_time, end_time)
+    cantidad = al.size(resultado)
+    print()
+    print("========================================================================================================")
+    print("Tiempo de ejecución en ms: ", duracion)
+    print(f"Cantidad de crímenes ocurridos entre {fecha_inicial} y {fecha_final}: {cantidad}")
+    print()
+    if cantidad == 0:
+        print("No se encontraron registros en el rango de fechas dado.")
+    else:
+        tabla = []
+        for i in range(cantidad):
+            crimen = al.get_element(resultado, i)
+            fila = {
+                "DR_NO":     crimen["DR_NO"],
+                "DATE OCC":  datetime.fromtimestamp(crimen["DATE OCC"]).strftime("%Y-%m-%d"),
+                "TIME OCC":  crimen["TIME OCC"],
+                "AREA NAME": crimen["AREA NAME"],
+                "Crm Cd":    crimen["Crm Cd"],
+                "LOCATION":  crimen["LOCATION"]
+            }
+            tabla.append(fila)
+        print(tb.tabulate(tabla, headers="keys", tablefmt="fancy_grid"))
+    print()
 
 
 def print_req_2(control):
@@ -71,11 +109,37 @@ def print_req_2(control):
 
 
 def print_req_3(control):
-    """
-        Función que imprime la solución del Requerimiento 3 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 3
-    pass
+    area_ciudad = input("Ingrese el nombre del área a consultar: ")
+    num_crimenes = int(input("Ingrese el número de crímenes reportados a mostrar: "))
+    start_time = logic.get_time()
+    total_crimenes, respuesta = logic.req_3(control, num_crimenes, area_ciudad)
+    end_time = logic.get_time()
+    duracion = logic.delta_time(start_time, end_time)
+    cantidad_mostrada = al.size(respuesta)
+    print()
+    print("========================================================================================================")
+    print("Tiempo de ejecución en ms:", duracion)
+    print(f"Crímenes registrados en el área '{area_ciudad}': {total_crimenes}")
+    print(f"Mostrando los {cantidad_mostrada} crímenes más recientes:")
+    print()
+    tabla = []
+    for i in range(cantidad_mostrada):
+        crimen = al.get_element(respuesta, i)
+        hora_formateada = f"{crimen['TIME OCC'] // 100:02}:{crimen['TIME OCC'] % 100:02}"
+        fila = {
+            "DR_NO":        crimen["DR_NO"],
+            "DATE OCC":     datetime.fromtimestamp(crimen["DATE OCC"]).strftime("%Y-%m-%d"),
+            "TIME OCC":     hora_formateada,
+            "AREA":         crimen["AREA"],
+            "Rpt Dist No":  crimen["Rpt Dist No"],
+            "Part 1-2":     crimen["Part 1-2"],
+            "Crm Cd":       crimen["Crm Cd"],
+            "Status":       crimen["Status"],
+            "LOCATION":     crimen["LOCATION"],
+        }
+        tabla.append(fila)
+    print(tb.tabulate(tabla, headers="keys", tablefmt="fancy_grid"))
+    print()
 
 
 def print_req_4(control):
