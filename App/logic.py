@@ -274,12 +274,50 @@ def sort_criteria_req_6(a, b):
 
 
 
-def req_7(catalog):
-    """
-    Retorna el resultado del requerimiento 7
-    """
-    # TODO: Modificar el requerimiento 7
-    pass
+def req_7(catalog, num_areas, sexo, edad_inicial, edad_final):
+    crimenes = catalog["report_crimes"]
+    crimen_stats = {}
+
+    for i in range(al.size(crimenes)):
+        crimen = al.get_element(crimenes, i)
+        edad = crimen["Vict Age"]
+        if crimen["Vict Sex"] != sexo or not (edad_inicial <= edad <= edad_final):
+            continue
+
+        codigo = crimen["Crm Cd"]
+        anio = datetime.fromtimestamp(crimen["DATE OCC"]).year
+
+        if codigo not in crimen_stats:
+            crimen_stats[codigo] = {"total": 0, "por_edad": {}, "por_anio": {}}
+        crimen_stats[codigo]["total"] += 1
+
+        if edad not in crimen_stats[codigo]["por_edad"]:
+            crimen_stats[codigo]["por_edad"][edad] = 0
+        crimen_stats[codigo]["por_edad"][edad] += 1
+
+        if anio not in crimen_stats[codigo]["por_anio"]:
+            crimen_stats[codigo]["por_anio"][anio] = 0
+        crimen_stats[codigo]["por_anio"][anio] += 1
+
+    lista_crimenes = al.new_list()
+    for codigo, data in crimen_stats.items():
+        al.add_last(lista_crimenes, {
+            "Crm Cd": codigo,
+            "total": data["total"],
+            "por_edad": [(count, edad) for edad, count in data["por_edad"].items()],
+            "por_anio": [(count, anio) for anio, count in data["por_anio"].items()]
+        })
+
+    al.merge_sort(lista_crimenes, sort_criteria_req_7)
+
+    resultado = al.new_list()
+    limite = min(num_areas, al.size(lista_crimenes))
+    for i in range(limite):
+        al.add_last(resultado, al.get_element(lista_crimenes, i))
+
+    return resultado
+def sort_criteria_req_7(a, b):
+        return a["total"] > b["total"]
 
 
 def req_8(catalog):
