@@ -3,6 +3,7 @@ import sys
 import os
 import csv
 from datetime import datetime
+import math
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -162,24 +163,32 @@ def req_1(catalog, fecha_inicial, fecha_final):
     al.merge_sort(lista_crimenes, sort_criteria_req_1_3)
     
     resultado = al.new_list()
-    for c in lista_crimenes:
+    for i in range(al.size(lista_crimenes)):
+        c = al.get_element(lista_crimenes, i)
         al.add_last(resultado, {
             "DR_NO":     c["DR_NO"],
             "DATE OCC":  c["DATE OCC"],
             "TIME OCC":  c["TIME OCC"],
             "AREA NAME": c["AREA NAME"],
             "Crm Cd":    c["Crm Cd"],
-            "LOCATION": c["LOCATION"]
+            "LOCATION":  c["LOCATION"]
         })
 
     return resultado
+
 def sort_criteria_req_1_3(r1, r2):
+    
     if r1["DATE OCC"] > r2["DATE OCC"]:
+        
         return True
+    
     elif r1["DATE OCC"] < r2["DATE OCC"]:
+        
         return False
+    
     else:
-        return r1["AREA"] > r2["AREA"]
+        
+        return r1["AREA NAME"] > r2["AREA NAME"]
 
 
 
@@ -228,6 +237,7 @@ def req_5(catalog):
 
 
 def req_6(catalog, num_areas, sexo, mes:int):
+    
     crimenes = catalog["report_crimes"]
     area_crime_stats = {}
     for i in range(al.size(crimenes)):
@@ -262,19 +272,31 @@ def req_6(catalog, num_areas, sexo, mes:int):
 
     if al.size(lista_areas) > num_areas:
         lista_limitada = al.new_list()
-    for i in range(num_areas):
-        al.add_last(lista_limitada, al.get_element(lista_areas, i))
-    return lista_limitada
+        for i in range(num_areas):
+            al.add_last(lista_limitada, al.get_element(lista_areas, i))
+            
+        return lista_limitada
+    
+    else:
+        
+        return lista_areas
+    
 def sort_criteria_req_6(a, b):
+    
         if a["total_crimes"] != b["total_crimes"]:
+            
             return a["total_crimes"] < b["total_crimes"]
+        
         if len(a["years"]) != len(b["years"]):
+            
             return len(a["years"]) < len(b["years"])
+        
         return a["AREA NAME"] < b["AREA NAME"]
 
 
 
 def req_7(catalog, num_areas, sexo, edad_inicial, edad_final):
+    
     crimenes = catalog["report_crimes"]
     crimen_stats = {}
 
@@ -316,16 +338,93 @@ def req_7(catalog, num_areas, sexo, edad_inicial, edad_final):
         al.add_last(resultado, al.get_element(lista_crimenes, i))
 
     return resultado
+
 def sort_criteria_req_7(a, b):
+    
         return a["total"] > b["total"]
 
 
-def req_8(catalog):
-    """
-    Retorna el resultado del requerimiento 8
-    """
-    # TODO: Modificar el requerimiento 8
-    pass
+def req_8(catalog, crimenes_consultados, area_interes, tipo_crimen):
+    
+    crimenes = catalog["report_crimes"]
+    crimenes_area_interes = al.new_list()
+    crimenes_otras_areas = al.new_list()
+
+    for i in range(al.size(crimenes)):
+        crimen = al.get_element(crimenes, i)
+        if crimen["Crm Cd"] != tipo_crimen:
+            continue
+        if crimen["AREA NAME"] == area_interes:
+            al.add_last(crimenes_area_interes, crimen)
+        else:
+            al.add_last(crimenes_otras_areas, crimen)
+
+    parejas = al.new_list()
+
+    for i in range(al.size(crimenes_area_interes)):
+        crimen_a = al.get_element(crimenes_area_interes, i)
+        fecha_a = datetime.fromtimestamp(crimen_a["DATE OCC"])
+        lat_a, lon_a = crimen_a["LAT"], crimen_a["LON"]
+
+        for j in range(al.size(crimenes_otras_areas)):
+            crimen_b = al.get_element(crimenes_otras_areas, j)
+            fecha_b = datetime.fromtimestamp(crimen_b["DATE OCC"])
+            lat_b, lon_b = crimen_b["LAT"], crimen_b["LON"]
+
+            distancia = haversine(lat_a, lon_a, lat_b, lon_b)
+
+            if fecha_a <= fecha_b:
+                crimen_primero, crimen_segundo = crimen_a, crimen_b
+                fecha_primero, fecha_segundo = fecha_a, fecha_b
+            else:
+                crimen_primero, crimen_segundo = crimen_b, crimen_a
+                fecha_primero, fecha_segundo = fecha_b, fecha_a
+
+            if crimen_primero["AREA NAME"] == area_interes:
+                fecha_interes = fecha_primero
+                fecha_otra = fecha_segundo
+                area_otra = crimen_segundo["AREA NAME"]
+            else:
+                fecha_interes = fecha_segundo
+                fecha_otra = fecha_primero
+                area_otra = crimen_primero["AREA NAME"]
+
+            pareja = {
+                "Crm Cd": tipo_crimen,
+                "Area otra": area_otra,
+                "Fecha crimen area interes": fecha_interes,
+                "Fecha crimen otra area": fecha_otra,
+                "Distancia (km)": distancia
+            }
+            al.add_last(parejas, pareja)
+
+    al.merge_sort(parejas, sort_criteria_req_8)
+
+    total_parejas = al.size(parejas)
+    N_cercanos = min(crimenes_consultados, total_parejas)
+    N_lejanos = min(crimenes_consultados, total_parejas)
+
+    cercanos = al.sub_list(parejas, 0, N_cercanos)
+    lejanos = al.sub_list(parejas, total_parejas - N_lejanos, N_lejanos)
+    
+    return cercanos, lejanos
+
+def sort_criteria_req_8(p1, p2):
+    
+    return p1["Distancia (km)"] < p2["Distancia (km)"]
+
+def haversine(lat1, lon1, lat2, lon2):
+    
+    R = 6371 
+    phi1 = math.radians(lat1)
+    phi2 = math.radians(lat2)
+    delta_phi = math.radians(lat2 - lat1)
+    delta_lambda = math.radians(lon2 - lon1)
+
+    a = math.sin(delta_phi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(delta_lambda / 2) ** 2
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+    return R * c
 
 
 # Funciones para medir tiempos de ejecucion
