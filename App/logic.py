@@ -142,6 +142,8 @@ def get_first_last_info(reports_list, requerimiento, num = 10):
             al.add_last(new_list_return, extract_info(rec, requerimiento))
     return new_list_return
 
+
+
 def req_1(catalog, fecha_inicial, fecha_final):
     
     fecha_inicial = datetime.strptime(fecha_inicial, "%Y-%m-%d").timestamp()
@@ -171,7 +173,6 @@ def req_1(catalog, fecha_inicial, fecha_final):
         })
 
     return resultado
-
 def sort_criteria_req_1_3(r1, r2):
     if r1["DATE OCC"] > r2["DATE OCC"]:
         return True
@@ -181,9 +182,11 @@ def sort_criteria_req_1_3(r1, r2):
         return r1["AREA"] > r2["AREA"]
 
 
+
 def req_2(catalog):
 
     pass
+
 
 
 def req_3(catalog, num_crimenes, area_ciudad):
@@ -215,8 +218,6 @@ def req_4(catalog):
     """
     # TODO: Modificar el requerimiento 4
     pass
-
-
 def req_5(catalog):
     """
     Retorna el resultado del requerimiento 5
@@ -224,12 +225,53 @@ def req_5(catalog):
     # TODO: Modificar el requerimiento 5
     pass
 
-def req_6(catalog):
-    """
-    Retorna el resultado del requerimiento 6
-    """
-    # TODO: Modificar el requerimiento 6
-    pass
+
+
+def req_6(catalog, num_areas, sexo, mes:int):
+    crimenes = catalog["report_crimes"]
+    area_crime_stats = {}
+    for i in range(al.size(crimenes)):
+        crimen = al.get_element(crimenes, i)
+        if crimen["Vict Sex"] != sexo:
+            continue
+
+        fecha = datetime.fromtimestamp(crimen["DATE OCC"])
+        if fecha.month != mes:
+            continue
+
+        area = crimen["AREA NAME"]
+        anio = fecha.year
+
+        if area not in area_crime_stats:
+            area_crime_stats[area] = {'total': 0, 'years': {}}
+        
+        area_crime_stats[area]['total'] += 1
+        if anio not in area_crime_stats[area]['years']:
+            area_crime_stats[area]['years'][anio] = 0
+        area_crime_stats[area]['years'][anio] += 1
+
+    lista_areas = al.new_list()
+    for area, data in area_crime_stats.items():
+        al.add_last(lista_areas,{
+            "AREA NAME": area,
+            "total_crimes": data['total'],
+            "years": [(count, year) for year, count in data['years'].items()]
+        })
+
+    al.merge_sort(lista_areas, sort_criteria_req_6)
+
+    if al.size(lista_areas) > num_areas:
+        lista_limitada = al.new_list()
+    for i in range(num_areas):
+        al.add_last(lista_limitada, al.get_element(lista_areas, i))
+    return lista_limitada
+def sort_criteria_req_6(a, b):
+        if a["total_crimes"] != b["total_crimes"]:
+            return a["total_crimes"] < b["total_crimes"]
+        if len(a["years"]) != len(b["years"]):
+            return len(a["years"]) < len(b["years"])
+        return a["AREA NAME"] < b["AREA NAME"]
+
 
 
 def req_7(catalog):
