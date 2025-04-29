@@ -159,19 +159,59 @@ def print_req_5(control):
 
 
 def print_req_6(control):
-    """
-        Función que imprime la solución del Requerimiento 6 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 6
-    pass
+    sexo = input("Ingrese el sexo (M/F) a consultar: ").upper()
+    mes = int(input("Ingrese el mes (1-12) a consultar: "))
+    num_areas = int(input("Ingrese el número de áreas a mostrar: "))
+    start_time = logic.get_time()
+    respuesta = logic.req_6(control, num_areas, sexo, mes)
+    end_time = logic.get_time()
+    duracion = logic.delta_time(start_time, end_time)
+    cantidad_mostrada = al.size(respuesta)
+    print()
+    print("========================================================================================================")
+    print("Tiempo de ejecución en ms:", duracion)
+    print(f"Mostrando las {cantidad_mostrada} áreas más seguras (con menos crímenes) en el mes {mes}:")
+    print()
+    tabla = []
+    for i in range(cantidad_mostrada):
+        area = al.get_element(respuesta, i)
+        fila = {
+            "AREA NAME":     area["AREA NAME"],
+            "TOTAL CRIMES EN EL MES":  area["total_crimes"],
+            "AÑOS CON CRIMENES": ", ".join([f"{anio}: {count}" for count, anio in area["years"]])
+        }
+        tabla.append(fila)
+    print(tb.tabulate(tabla, headers="keys", tablefmt="fancy_grid"))
+    print()
 
 
 def print_req_7(control):
-    """
-        Función que imprime la solución del Requerimiento 7 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 7
-    pass
+    sexo = input("Ingrese el sexo (M/F) a consultar: ").upper()
+    edad_inicial = int(input("Ingrese la edad mínima a consultar: "))
+    edad_final = int(input("Ingrese la edad máxima a consultar: "))
+    num_areas = int(input("Ingrese el número de áreas a mostrar: "))
+    start_time = logic.get_time()
+    respuesta = logic.req_7(control, num_areas, sexo, edad_inicial, edad_final)
+    end_time = logic.get_time()
+    duracion = logic.delta_time(start_time, end_time)
+    cantidad_mostrada = al.size(respuesta)
+    print()
+    print("========================================================================================================")
+    print("Tiempo de ejecución en ms:", duracion)
+    print(f"Mostrando los {cantidad_mostrada} crímenes reportados para el sexo {sexo} en el rango de edades {edad_inicial}-{edad_final}:")
+    print()
+    tabla = []
+    for i in range(cantidad_mostrada):
+        crimen = al.get_element(respuesta, i)
+        fila = {
+            "Crm Cd":       crimen["Crm Cd"],
+            "TOTAL CRIMES": crimen["total"],
+            "POR EDAD":     ", ".join([f"{count} crímenes, edad {edad}" for count, edad in crimen["por_edad"]]),
+            "POR AÑO":      ", ".join([f"{count} crímenes, año {anio}" for count, anio in crimen["por_anio"]])
+        }
+        tabla.append(fila)
+    print(tb.tabulate(tabla, headers="keys", tablefmt="fancy_grid"))
+    print()
 
 
 def print_req_8(control):

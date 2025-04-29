@@ -160,7 +160,7 @@ def req_1(catalog, fecha_inicial, fecha_final):
         for j in range(sll.size(valor_por_llave)):
             al.add_last(lista_crimenes,sll.get_element(valor_por_llave, j))
     
-    al.merge_sort(lista_crimenes, sort_criteria_req_1_3)
+    al.merge_sort(lista_crimenes, sort_criteria_req_1)
     
     resultado = al.new_list()
     for i in range(al.size(lista_crimenes)):
@@ -176,7 +176,7 @@ def req_1(catalog, fecha_inicial, fecha_final):
 
     return resultado
 
-def sort_criteria_req_1_3(r1, r2):
+def sort_criteria_req_1(r1, r2):
     
     if r1["DATE OCC"] > r2["DATE OCC"]:
         
@@ -208,7 +208,7 @@ def req_3(catalog, num_crimenes, area_ciudad):
         if crimen["AREA NAME"].lower() == area_ciudad.lower():
             al.add_last(reportes_area, crimen)
 
-    al.merge_sort(reportes_area, sort_criteria_req_1_3)
+    al.merge_sort(reportes_area, sort_criteria_req_3)
 
     respuesta = al.new_list()
     total_crimenes = al.size(reportes_area)
@@ -218,6 +218,21 @@ def req_3(catalog, num_crimenes, area_ciudad):
         al.add_last(respuesta, extract_info(crimen, "requerimiento_3"))
 
     return total_crimenes, respuesta
+
+def sort_criteria_req_3(r1, r2):
+
+
+    if r1["DATE OCC"] != r2["DATE OCC"]:
+
+        return r1["DATE OCC"] > r2["DATE OCC"]
+
+    elif r1["TIME OCC"] != r2["TIME OCC"]:
+
+        return r1["TIME OCC"] > r2["TIME OCC"]
+
+    else:
+
+        return r1["AREA NAME"] > r2["AREA NAME"]
 
 
 
@@ -443,10 +458,5 @@ def delta_time(start, end):
     elapsed = float(end - start)
     return elapsed
 
-catalog = new_logic()
-
-load_data(catalog, "Crime_in_LA_100.csv")
-
-print(catalog)
 
 
