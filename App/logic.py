@@ -112,6 +112,18 @@ def extract_info(report, requerimiento):
             "AREA NAME": report["AREA NAME"],
             "Crm Cd": report["Crm Cd"],
         }
+    elif requerimiento == "requerimiento_3":
+        return {
+            "DR_NO": report["DR_NO"],
+            "DATE OCC": report["DATE OCC"],
+            "TIME OCC": report["TIME OCC"],
+            "AREA": report["AREA"],
+            "Rpt Dist No": report["Rpt Dist No"],
+            "Part 1-2": report["Part 1-2"],
+            "Crm Cd": report["Crm Cd"],
+            "Status": report["Status"],
+            "LOCATION": report["LOCATION"],
+        }
     return report
             
 def get_first_last_info(reports_list, requerimiento, num = 10):
@@ -145,7 +157,7 @@ def req_1(catalog, fecha_inicial, fecha_final):
         for j in range(sll.size(valor_por_llave)):
             al.add_last(lista_crimenes,sll.get_element(valor_por_llave, j))
     
-    al.merge_sort(lista_crimenes, sort_criteria_req_1)
+    al.merge_sort(lista_crimenes, sort_criteria_req_1_3)
     
     resultado = al.new_list()
     for c in lista_crimenes:
@@ -160,7 +172,7 @@ def req_1(catalog, fecha_inicial, fecha_final):
 
     return resultado
 
-def sort_criteria_req_1(r1, r2):
+def sort_criteria_req_1_3(r1, r2):
     if r1["DATE OCC"] > r2["DATE OCC"]:
         return True
     elif r1["DATE OCC"] < r2["DATE OCC"]:
@@ -170,19 +182,31 @@ def sort_criteria_req_1(r1, r2):
 
 
 def req_2(catalog):
-    """
-    Retorna el resultado del requerimiento 2
-    """
-    # TODO: Modificar el requerimiento 2
+
     pass
 
 
-def req_3(catalog):
-    """
-    Retorna el resultado del requerimiento 3
-    """
-    # TODO: Modificar el requerimiento 3
-    pass
+def req_3(catalog, num_crimenes, area_ciudad):
+
+    reportes_area = al.new_list()
+    all_crimes = catalog["report_crimes"]
+
+    for i in range(al.size(all_crimes)):
+        crimen = al.get_element(all_crimes, i)
+        if crimen["AREA NAME"].lower() == area_ciudad.lower():
+            al.add_last(reportes_area, crimen)
+
+    al.merge_sort(reportes_area, sort_criteria_req_1_3)
+
+    respuesta = al.new_list()
+    total_crimenes = al.size(reportes_area)
+
+    for i in range(min(num_crimenes, total_crimenes)):
+        crimen = al.get_element(reportes_area, i)
+        al.add_last(respuesta, extract_info(crimen, "requerimiento_3"))
+
+    return total_crimenes, respuesta
+
 
 
 def req_4(catalog):
