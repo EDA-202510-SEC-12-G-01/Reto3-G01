@@ -12,6 +12,7 @@ sys.setrecursionlimit(default_limit*10)
 from DataStructures.List import array_list as al
 from DataStructures.List.list_iterator import iterator
 from DataStructures.Tree import binary_search_tree as rbt
+from DataStructures.List import single_linked_list as sll
 
 data_dir = os.path.dirname(os.path.realpath("__file__")) + "\\Data\\"
 
@@ -129,12 +130,43 @@ def get_first_last_info(reports_list, requerimiento, num = 10):
             al.add_last(new_list_return, extract_info(rec, requerimiento))
     return new_list_return
 
-def req_1(catalog):
-    """
-    Retorna el resultado del requerimiento 1
-    """
-    # TODO: Modificar el requerimiento 1
-    pass
+def req_1(catalog, fecha_inicial, fecha_final):
+    
+    fecha_inicial = datetime.strptime(fecha_inicial, "%Y-%m-%d").timestamp()
+    fecha_final = datetime.strptime(fecha_final, "%Y-%m-%d").timestamp()
+    
+    arbol = catalog["report_crimes_DATE_OCC"]
+    lista_llaves = rbt.keys(arbol, fecha_inicial, fecha_final)
+    
+    lista_crimenes = al.new_list()
+    for i in range(sll.size(lista_llaves)):
+        elementos = sll.get_element(lista_llaves, i)
+        valor_por_llave = rbt.get(arbol, elementos)
+        for j in range(sll.size(valor_por_llave)):
+            al.add_last(lista_crimenes,sll.get_element(valor_por_llave, j))
+    
+    al.merge_sort(lista_crimenes, sort_criteria_req_1)
+    
+    resultado = al.new_list()
+    for c in lista_crimenes:
+        al.add_last(resultado, {
+            "DR_NO":     c["DR_NO"],
+            "DATE OCC":  c["DATE OCC"],
+            "TIME OCC":  c["TIME OCC"],
+            "AREA NAME": c["AREA NAME"],
+            "Crm Cd":    c["Crm Cd"],
+            "LOCATION": c["LOCATION"]
+        })
+
+    return resultado
+
+def sort_criteria_req_1(r1, r2):
+    if r1["DATE OCC"] > r2["DATE OCC"]:
+        return True
+    elif r1["DATE OCC"] < r2["DATE OCC"]:
+        return False
+    else:
+        return r1["AREA"] > r2["AREA"]
 
 
 def req_2(catalog):
