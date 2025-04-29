@@ -17,14 +17,6 @@ def new_single_node(element):
 
 
 def get_element(node):
-    """ Retorna la información de un nodo
-
-        :param node: El nodo a examinar
-        :type node: list_node
-
-        :returns: La información almacenada en el nodo
-        :rtype: any
-    """
     return node['info']
 
 

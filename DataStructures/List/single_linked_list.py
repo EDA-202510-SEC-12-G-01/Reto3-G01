@@ -2,14 +2,6 @@ from DataStructures.List.list_node import new_single_node
 from DataStructures.List.list_node import get_element as get_node_info
 
 def new_list():
-    """
-    Crea una lista de tipo single_linked_list vacía.
-    Returns:
-        dict: Un diccionario con tres llaves:
-              - 'size': 0
-              - 'first': None
-              - 'last': None
-    """
     return {
         'size': 0,
         'first': None,
@@ -34,19 +26,6 @@ def is_empty(my_list):
     return my_list['size'] == 0
 
 def size(my_list):
-    """
-    Retorna el tamaño de la lista.
-    Parameters:
-        my_list (dict): Estructura single_linked_list con llaves 'size', 'first', 'last'.
-                        Ejemplo:
-                        {
-                            'size': 0,
-                            'first': None,
-                            'last': None
-                        }
-    Returns:
-        int: Tamaño de la lista (número de elementos).
-    """
     return my_list['size']
 
 def add_first(my_list, element):
@@ -76,21 +55,6 @@ def add_first(my_list, element):
     return my_list
 
 def add_last(my_list, element):
-    """
-    Agrega un nuevo nodo al final de la lista y aumenta el tamaño de la lista en 1.
-    En caso de que la lista esté vacía, el primer y último nodo de la lista serán el nuevo nodo.
-    Parameters:
-        my_list (dict): Estructura single_linked_list con llaves 'size', 'first', 'last'.
-                        Ejemplo:
-                        {
-                            'size': 0,
-                            'first': None,
-                            'last': None
-                        }
-        element (any): Elemento a agregar al final de la lista.
-    Returns:
-        dict: La lista (single_linked_list) con el elemento agregado al final.
-    """
     new_node = new_single_node(element)
     if my_list['size'] == 0:
         my_list['first'] = new_node
@@ -144,23 +108,6 @@ def last_element(my_list):
     return get_node_info(my_list['last'])
 
 def get_element(my_list, pos):
-    """
-    Retorna el elemento en la posición dada.
-    La posición 'pos' debe ser >= 0 y < my_list['size'].
-    Parameters:
-        my_list (dict): Estructura single_linked_list con llaves 'size', 'first', 'last'.
-                        Ejemplo:
-                        {
-                            'size': 3,
-                            'first': <nodo1>,
-                            'last': <nodo3>
-                        }
-        pos (int): Posición del elemento a retornar.
-    Returns:
-        any: El valor (info) del nodo en la posición 'pos'.
-    Raises:
-        IndexError: Si la posición es inválida (pos < 0 o pos >= my_list['size']).
-    """
     if pos < 0 or pos >= my_list['size']:
         raise IndexError("list index out of range")
     current = my_list['first']

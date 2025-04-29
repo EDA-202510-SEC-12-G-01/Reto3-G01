@@ -1,11 +1,4 @@
 def new_list():
-    """
-    Crea una lista de tipo array_list vacía.
-    Returns:
-        dict: Un diccionario con dos llaves:
-              - 'size': 0
-              - 'elements': []
-    """
     return {
         'size': 0,
         'elements': [],
@@ -462,23 +455,6 @@ def shell_sort(lst, sort_crit):
     return lst
 
 def merge_sort(lst, sort_crit):
-    """
-    Ordena la lista 'lst' usando el algoritmo Merge Sort.
-
-    Parámetros:
-      lst: Lista a ordenar. Debe ser un diccionario con la estructura
-           {'size': int, 'first': ..., 'last': ..., 'type': 'array_list' o 'single_linked_list'}.
-      sort_crit: Función de comparación que recibe dos elementos y retorna True
-                 si el primer elemento es menor que el segundo (criterio de ordenación ascendente).
-
-    Retorna:
-      La misma lista 'lst', ordenada de forma ascendente según sort_crit.
-
-    Ejemplo de uso:
-      def less_than(a, b):
-          return a < b
-      sorted_lst = merge_sort(my_list, less_than)
-    """
     n = size(lst)
     if n > 1:
         mid = n // 2

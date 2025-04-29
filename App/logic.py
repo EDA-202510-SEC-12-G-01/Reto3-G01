@@ -157,8 +157,8 @@ def req_1(catalog, fecha_inicial, fecha_final):
     for i in range(sll.size(lista_llaves)):
         elementos = sll.get_element(lista_llaves, i)
         valor_por_llave = rbt.get(arbol, elementos)
-        for j in range(sll.size(valor_por_llave)):
-            al.add_last(lista_crimenes,sll.get_element(valor_por_llave, j))
+        for j in range(al.size(valor_por_llave)):
+            al.add_last(lista_crimenes,al.get_element(valor_por_llave, j))
     
     al.merge_sort(lista_crimenes, sort_criteria_req_1)
     
