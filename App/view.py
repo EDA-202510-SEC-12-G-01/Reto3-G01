@@ -215,11 +215,43 @@ def print_req_7(control):
 
 
 def print_req_8(control):
-    """
-        Función que imprime la solución del Requerimiento 8 en consola
-    """
-    # TODO: Imprimir el resultado del requerimiento 8
-    pass
+    area_interes = input("Ingrese el nombre del área de interés: ")
+    crimenes_consultados = int(input("Ingrese el número de crímenes a consultar: "))
+    tipo_crimen = input("Ingrese el código del crimen (Crm Cd): ")
+    start_time = logic.get_time()
+    cercanos, lejanos = logic.req_8(control, crimenes_consultados, area_interes, tipo_crimen)
+    end_time = logic.get_time()
+    duracion = logic.delta_time(start_time, end_time)
+    print()
+    print("========================================================================================================")
+    print("Tiempo de ejecución en ms: ", duracion)
+    print(f"Mostrando los {al.size(cercanos)} crímenes más cercanos:")
+    print()
+    tabla_cercanos = []
+    for pareja in cercanos:
+        fila = {
+            "Crm Cd": pareja["Crm Cd"],
+            "Area otra": pareja["Area otra"],
+            "Fecha crimen area interes": datetime.fromtimestamp(pareja["Fecha crimen area interes"]).strftime("%Y-%m-%d %H:%M:%S"),
+            "Fecha crimen otra area": datetime.fromtimestamp(pareja["Fecha crimen otra area"]).strftime("%Y-%m-%d %H:%M:%S"),
+            "Distancia (km)": pareja["Distancia (km)"]
+        }
+        tabla_cercanos.append(fila)
+    print(tb.tabulate(tabla_cercanos, headers="keys", tablefmt="fancy_grid"))
+    print(f"\nMostrando los {al.size(lejanos)} crímenes más lejanos:")
+    print()
+    tabla_lejanos = []
+    for pareja in lejanos:
+        fila = {
+            "Crm Cd": pareja["Crm Cd"],
+            "Area otra": pareja["Area otra"],
+            "Fecha crimen area interes": datetime.fromtimestamp(pareja["Fecha crimen area interes"]).strftime("%Y-%m-%d %H:%M:%S"),
+            "Fecha crimen otra area": datetime.fromtimestamp(pareja["Fecha crimen otra area"]).strftime("%Y-%m-%d %H:%M:%S"),
+            "Distancia (km)": pareja["Distancia (km)"]
+        }
+        tabla_lejanos.append(fila)
+    print(tb.tabulate(tabla_lejanos, headers="keys", tablefmt="fancy_grid"))
+    print()
 
 
 # Se crea la lógica asociado a la vista
