@@ -163,6 +163,15 @@ def sort_criteria_2(element_1, element_2):
             condition = True
     return condition
 
+def sort_criteria_3(element_1, element_2):
+    condition = False
+    if element_1["Num Crimes"] > element_2["Num Crimes"]:
+        condition = True
+    elif element_1["Num Crimes"] == element_2["Num Crimes"]:
+        if element_1["Crm Cd"] < element_2["Crm Cd"]:
+            condition = True
+    return condition
+
 # Funciones de consulta sobre el catálogo
 def get_data(catalog, id):
     """
@@ -185,13 +194,10 @@ def req_1(catalog, fecha_inicial, fecha_final):
     """
     Retorna el resultado del requerimiento 1
     """
-    start_time = get_time()
     report_crimes_DATE_OCC = catalog["report_crimes_DATE_OCC"]
     report_crimes_DATE_OCC_list = filtrar_por_DATE_OCC(report_crimes_DATE_OCC, fecha_inicial, fecha_final)
     al.merge_sort(report_crimes_DATE_OCC_list, sort_criteria_1)
-    end_time = get_time()
-    time = delta_time(start_time, end_time)
-    return round(time,3), get_first_last_info(report_crimes_DATE_OCC_list, "requerimiento_1", 10)
+    return get_first_last_info(report_crimes_DATE_OCC_list, "requerimiento_1", 10)
 
 def req_3(catalog, num_crimenes, area_ciudad):
 
@@ -275,11 +281,13 @@ def req_5(catalog, N, fecha_inicial, fecha_final):
     return round(time, 3), sorted_values
 
 def req_6(catalog, num_areas, sexo, mes:int):
-    
     crimenes = catalog["report_crimes"]
     area_crime_stats = {}
+    area_dict = {}
     for i in range(al.size(crimenes)):
         crimen = al.get_element(crimenes, i)
+        if crimen["AREA NAME"] not in area_dict:
+            area_dict[crimen["AREA NAME"]] = crimen["AREA"]
         if crimen["Vict Sex"] != sexo:
             continue
 
@@ -301,6 +309,7 @@ def req_6(catalog, num_areas, sexo, mes:int):
     lista_areas = al.new_list()
     for area, data in area_crime_stats.items():
         al.add_last(lista_areas,{
+            "AREA": area_dict[area],
             "AREA NAME": area,
             "total_crimes": data['total'],
             "years": [(count, year) for year, count in data['years'].items()]
@@ -313,11 +322,8 @@ def req_6(catalog, num_areas, sexo, mes:int):
         for i in range(num_areas):
             al.add_last(lista_limitada, al.get_element(lista_areas, i))
             
-        return lista_limitada
-    
-    else:
-        
-        return lista_areas
+        lista_areas = lista_limitada
+    return lista_areas
     
 def sort_criteria_req_6(a, b):
     
@@ -333,53 +339,50 @@ def sort_criteria_req_6(a, b):
 
 
 
-def req_7(catalog, num_areas, sexo, edad_inicial, edad_final):
-    
-    crimenes = catalog["report_crimes"]
-    crimen_stats = {}
+def req_7(catalog, N, sex, initial_age, final_age):
+    report_by_age = catalog["report_crimes_Vict_Age"]
+    rangos = bst.values(report_by_age, initial_age, final_age)
+    filtrados = al.new_list()
+    for sublista in iterator(rangos):
+        for reg in iterator(sublista):
+            if reg["Vict Sex"] == sex:
+                al.add_last(filtrados, reg)
 
-    for i in range(al.size(crimenes)):
-        crimen = al.get_element(crimenes, i)
-        edad = crimen["Vict Age"]
-        if crimen["Vict Sex"] != sexo or not (edad_inicial <= edad <= edad_final):
-            continue
+    total_counts   = {}
+    age_counts     = {}
+    year_counts    = {}
 
-        codigo = crimen["Crm Cd"]
-        anio = datetime.fromtimestamp(crimen["DATE OCC"]).year
+    for row in iterator(filtrados):
+        code = row["Crm Cd"]
+        total_counts[code] = total_counts.get(code, 0) + 1
+        edad = row["Vict Age"]
+        age_counts.setdefault(code, {})
+        age_counts[code][edad] = age_counts[code].get(edad, 0) + 1
+        año = datetime.fromtimestamp(row["DATE OCC"]).year
+        year_counts.setdefault(code, {})
+        year_counts[code][año] = year_counts[code].get(año, 0) + 1
 
-        if codigo not in crimen_stats:
-            crimen_stats[codigo] = {"total": 0, "por_edad": {}, "por_anio": {}}
-        crimen_stats[codigo]["total"] += 1
-
-        if edad not in crimen_stats[codigo]["por_edad"]:
-            crimen_stats[codigo]["por_edad"][edad] = 0
-        crimen_stats[codigo]["por_edad"][edad] += 1
-
-        if anio not in crimen_stats[codigo]["por_anio"]:
-            crimen_stats[codigo]["por_anio"][anio] = 0
-        crimen_stats[codigo]["por_anio"][anio] += 1
-
-    lista_crimenes = al.new_list()
-    for codigo, data in crimen_stats.items():
-        al.add_last(lista_crimenes, {
-            "Crm Cd": codigo,
-            "total": data["total"],
-            "por_edad": [(count, edad) for edad, count in data["por_edad"].items()],
-            "por_anio": [(count, anio) for anio, count in data["por_anio"].items()]
-        })
-
-    al.merge_sort(lista_crimenes, sort_criteria_req_7)
-
-    resultado = al.new_list()
-    limite = min(num_areas, al.size(lista_crimenes))
-    for i in range(limite):
-        al.add_last(resultado, al.get_element(lista_crimenes, i))
-
-    return resultado
-
-def sort_criteria_req_7(a, b):
-    
-        return a["total"] > b["total"]
+    resultados = al.new_list()
+    for code, total in total_counts.items():
+        lista_edades = al.new_list()
+        for edad, cnt in age_counts[code].items():
+            al.add_last(lista_edades, (cnt, edad))
+        lista_años = al.new_list()
+        for año, cnt in year_counts[code].items():
+            al.add_last(lista_años, (cnt, año))
+        mapa = {
+            "Crm Cd":        code,
+            "Num Crimes":    total,
+            "Crimes by Age": lista_edades["elements"],
+            "Crimes by Year": lista_años["elements"]
+        }
+        al.add_last(resultados, mapa)
+    sorted_list = al.merge_sort(resultados, sort_criteria_3)
+    top_n = al.new_list()
+    limite = min(N, al.size(sorted_list))
+    for idx in range(limite):
+        al.add_last(top_n, al.get_element(sorted_list, idx))
+    return top_n
 
 
 def req_8(catalog, crimenes_consultados, area_interes, tipo_crimen):
@@ -487,5 +490,5 @@ catalog = new_logic()
 
 load_data(catalog, "Crime_in_LA_100.csv")
 
-req1 = req_5(catalog, 8, "2019-06-05", "2021-06-12")
-print(tb.tabulate(iterator(req1[1]), headers= 'keys' , tablefmt= "fancy_grid"))
+req1 = req_7(catalog, 8, "F", 6, 18)
+print(tb.tabulate(iterator(req1), headers= 'keys' , tablefmt= "fancy_grid"))
