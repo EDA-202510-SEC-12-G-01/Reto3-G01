@@ -483,12 +483,3 @@ def delta_time(start, end):
     """
     elapsed = float(end - start)
     return elapsed
-
-
-
-catalog = new_logic()
-
-load_data(catalog, "Crime_in_LA_100.csv")
-
-req1 = req_7(catalog, 8, "F", 6, 18)
-print(tb.tabulate(iterator(req1), headers= 'keys' , tablefmt= "fancy_grid"))
