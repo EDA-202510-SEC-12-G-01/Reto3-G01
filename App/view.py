@@ -136,7 +136,16 @@ def print_req_5(control):
         Función que imprime la solución del Requerimiento 5 en consola
     """
     # TODO: Imprimir el resultado del requerimiento 5
-    pass
+    N = int(input("Ingrese la cantidad N de áreas a consultar: "))
+    fecha_inicial = input('Ingrese la fecha inicial del periodo a consultar (con formato "%Y-%m-%d"): ')
+    fecha_final = input('Ingrese la fecha final del periodo a consultar (con formato "%Y-%m-%d"): ')
+    time, records_return = logic.req_5(control, N, fecha_inicial, fecha_final)
+    print()
+    print("========================================================================================================")
+    print("Tiempo de ejecución en ms: ", time)
+    print("RESUMEN DE REGISTROS ENCONTRADOS")
+    print(tb.tabulate(iterator(records_return), headers= 'keys' , tablefmt= "fancy_grid"))
+    print()
 
 
 def print_req_6(control):
@@ -153,16 +162,7 @@ def print_req_6(control):
     print("Tiempo de ejecución en ms:", duracion)
     print(f"Mostrando las {cantidad_mostrada} áreas más seguras (con menos crímenes) en el mes {mes}:")
     print()
-    tabla = []
-    for i in range(cantidad_mostrada):
-        area = al.get_element(respuesta, i)
-        fila = {
-            "AREA NAME":     area["AREA NAME"],
-            "TOTAL CRIMES EN EL MES":  area["total_crimes"],
-            "AÑOS CON CRIMENES": ", ".join([f"{anio}: {count}" for count, anio in area["years"]])
-        }
-        tabla.append(fila)
-    print(tb.tabulate(tabla, headers="keys", tablefmt="fancy_grid"))
+    print(tb.tabulate(iterator(respuesta), headers="keys", tablefmt="fancy_grid"))
     print()
 
 
