@@ -340,6 +340,7 @@ def sort_criteria_req_6(a, b):
 
 
 def req_7(catalog, N, sex, initial_age, final_age):
+    start_time = get_time()
     report_by_age = catalog["report_crimes_Vict_Age"]
     rangos = bst.values(report_by_age, initial_age, final_age)
     filtrados = al.new_list()
@@ -382,7 +383,9 @@ def req_7(catalog, N, sex, initial_age, final_age):
     limite = min(N, al.size(sorted_list))
     for idx in range(limite):
         al.add_last(top_n, al.get_element(sorted_list, idx))
-    return top_n
+    end_time = get_time()
+    time = delta_time(start_time, end_time)
+    return round(time,3), top_n
 
 
 def req_8(catalog, crimenes_consultados, area_interes, tipo_crimen):
