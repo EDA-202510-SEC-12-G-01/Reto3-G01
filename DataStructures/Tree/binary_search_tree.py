@@ -1,5 +1,5 @@
 from DataStructures.Tree import bst_node
-from DataStructures.List import single_linked_list as sll
+from DataStructures.List import array_list as al
 
 def new_map():
     return {"root": None}
@@ -73,26 +73,26 @@ def is_empty(my_bst):
     return my_bst["root"] is None
 
 def key_set(my_bst):
-    keys = sll.new_list()
+    keys = al.new_list()
     keys = key_set_tree(my_bst["root"], keys)
     return keys
     
 def key_set_tree(root, key_list):
     if root is not None:
         key_set_tree(root["left"], key_list)
-        sll.add_last(key_list, root["key"])
+        al.add_last(key_list, root["key"])
         key_set_tree(root["right"], key_list)
     return key_list
 
 def value_set(my_bst):
-    values = sll.new_list()
+    values = al.new_list()
     values = value_set_tree(my_bst["root"], values)
     return values
     
 def value_set_tree(root, value_list):
     if root is not None:
         value_set_tree(root["left"], value_list)
-        sll.add_last(value_list, root["value"])
+        al.add_last(value_list, root["value"])
         value_set_tree(root["right"], value_list)
     return value_list
 
@@ -233,7 +233,7 @@ def height_tree(root):
         return 1 + max(height_tree(root["left"]), height_tree(root["right"]))
 
 def keys(my_bst, key_initial, key_final):
-    list_key = sll.new_list()
+    list_key = al.new_list()
     list_key = keys_range(my_bst["root"], key_initial, key_final, list_key)
     return list_key
 
@@ -242,13 +242,13 @@ def keys_range(root, key_initial, key_final, list_key):
         if key_initial < root["key"]:
             keys_range(root["left"], key_initial, key_final, list_key)
         if key_initial <= root["key"] and key_final >= root["key"]:
-            sll.add_last(list_key, root["key"])
+            al.add_last(list_key, root["key"])
         if key_final > root["key"]:
             keys_range(root["right"], key_initial, key_final, list_key)
     return list_key
 
 def values(my_bst, key_initial, key_final):
-    list_values = sll.new_list()
+    list_values = al.new_list()
     list_values = values_range(my_bst["root"], key_initial, key_final, list_values)
     return list_values
 
@@ -257,7 +257,7 @@ def values_range(root, key_initial, key_final, list_value):
         if key_initial < root["key"]:
             values_range(root["left"], key_initial, key_final, list_value)
         if key_initial <= root["key"] and key_final >= root["key"]:
-            sll.add_last(list_value, root["value"])
+            al.add_last(list_value, root["value"])
         if key_final > root["key"]:
             values_range(root["right"], key_initial, key_final, list_value)
     return list_value

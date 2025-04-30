@@ -4,16 +4,17 @@ import os
 import csv
 from datetime import datetime
 import math
+import tabulate as tb
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 default_limit=1000000
 sys.setrecursionlimit(default_limit*10)
 
-from DataStructures.List import array_list as al
 from DataStructures.List.list_iterator import iterator
-from DataStructures.Tree import binary_search_tree as rbt
-from DataStructures.List import single_linked_list as sll
+from DataStructures.Tree import binary_search_tree as bst
+from DataStructures.List import array_list as al
+from DataStructures.Map import map_separate_chaining as sc
 
 data_dir = os.path.dirname(os.path.realpath("__file__")) + "\\Data\\"
 
@@ -26,10 +27,10 @@ def new_logic():
     #TODO: Llama a las funciónes de creación de las estructuras de datos
     catalog = {
         "report_crimes": al.new_list(), 
-        "report_crimes_Date_Rptd": rbt.new_map(), 
-        "report_crimes_DATE_OCC": rbt.new_map(),
-        "report_crimes_AREA": rbt.new_map(),
-        "report_crimes_Vict_Age": rbt.new_map()
+        "report_crimes_Date_Rptd": bst.new_map(), 
+        "report_crimes_DATE_OCC": bst.new_map(),
+        "report_crimes_AREA": bst.new_map(),
+        "report_crimes_Vict_Age": bst.new_map()
         }
     return catalog
 
@@ -62,61 +63,62 @@ def load_data(catalog, filename):
             row["LON"] = float(row["LON"])
             row["Date Rptd"] = datetime.strptime(row["Date Rptd"], "%m/%d/%Y %I:%M:%S %p").timestamp()
             row["DATE OCC"] = datetime.strptime(row["DATE OCC"], "%m/%d/%Y %I:%M:%S %p").timestamp()
+            row["LOCATION"] = " ".join(row["LOCATION"].replace("\n","").replace("\t","").split())
             
-            if not rbt.contains(report_crimes_Date_Rptd, row["Date Rptd"]):
+            if not bst.contains(report_crimes_Date_Rptd, row["Date Rptd"]):
                 lista1 = al.new_list()
                 al.add_last(lista1, row)
-                rbt.put(report_crimes_Date_Rptd, row["Date Rptd"], lista1)
+                bst.put(report_crimes_Date_Rptd, row["Date Rptd"], lista1)
             else:
-                al.add_last(rbt.get(report_crimes_Date_Rptd, row["Date Rptd"]), row)
+                al.add_last(bst.get(report_crimes_Date_Rptd, row["Date Rptd"]), row)
                 
-            if not rbt.contains(report_crimes_DATE_OCC, row["DATE OCC"]):
+            if not bst.contains(report_crimes_DATE_OCC, row["DATE OCC"]):
                 lista2 = al.new_list()
                 al.add_last(lista2, row)
-                rbt.put(report_crimes_DATE_OCC, row["DATE OCC"], lista2)
+                bst.put(report_crimes_DATE_OCC, row["DATE OCC"], lista2)
             else:
-                al.add_last(rbt.get(report_crimes_DATE_OCC, row["DATE OCC"]), row)
+                al.add_last(bst.get(report_crimes_DATE_OCC, row["DATE OCC"]), row)
                 
-            if not rbt.contains(report_crimes_AREA, row["AREA"]):
+            if not bst.contains(report_crimes_AREA, row["AREA"]):
                 lista3 = al.new_list()
                 al.add_last(lista3, row)
-                rbt.put(report_crimes_AREA, row["AREA"], lista3)
+                bst.put(report_crimes_AREA, row["AREA"], lista3)
             else:
-                al.add_last(rbt.get(report_crimes_AREA, row["AREA"]), row)
+                al.add_last(bst.get(report_crimes_AREA, row["AREA"]), row)
             
-            if not rbt.contains(report_crimes_Vict_Age, row["Vict Age"]):
+            if not bst.contains(report_crimes_Vict_Age, row["Vict Age"]):
                 lista4 = al.new_list()
                 al.add_last(lista4, row)
-                rbt.put(report_crimes_Vict_Age, row["Vict Age"], lista4)
+                bst.put(report_crimes_Vict_Age, row["Vict Age"], lista4)
             else:
-                al.add_last(rbt.get(report_crimes_Vict_Age, row["Vict Age"]), row)
+                al.add_last(bst.get(report_crimes_Vict_Age, row["Vict Age"]), row)
             al.add_last(report_crimes, row)
     end_time = get_time()
     time = delta_time(star_time, end_time)
     return round(time, 3), al.size(report_crimes), get_first_last_info(report_crimes, "carga_datos")
 
-# Funciones de consulta sobre el catálogo
-
-def get_data(catalog, id):
-    """
-    Retorna un dato por su ID.
-    """
-    #TODO: Consulta en las Llamar la función del modelo para obtener un dato
-    return rbt.get(catalog["report_crimes"], id)
-
 def extract_info(report, requerimiento):
     if requerimiento == "carga_datos":
         return {
             "DR_NO": report["DR_NO"],
-            "Date Rptd": report["Date Rptd"],
-            "DATE OCC": report["DATE OCC"],
+            "Date Rptd": datetime.fromtimestamp(report["Date Rptd"]).strftime("%m/%d/%Y %I:%M:%S %p"),
+            "DATE OCC": datetime.fromtimestamp(report["DATE OCC"]).strftime("%m/%d/%Y %I:%M:%S %p"),
             "AREA NAME": report["AREA NAME"],
             "Crm Cd": report["Crm Cd"],
+        }
+    elif requerimiento == "requerimiento_1":
+        return {
+            "DR_NO" : report["DR_NO"],
+            "DATE OCC": datetime.fromtimestamp(report["DATE OCC"]).strftime("%m/%d/%Y %I:%M:%S %p"),
+            "TIME OCC" : report["TIME OCC"],
+            "AREA NAME" : report["AREA NAME"],
+            "Crm Cd" : report["Crm Cd"],
+            "LOCATION" : report["LOCATION"]
         }
     elif requerimiento == "requerimiento_3":
         return {
             "DR_NO": report["DR_NO"],
-            "DATE OCC": report["DATE OCC"],
+            "DATE OCC": datetime.fromtimestamp(report["DATE OCC"]).strftime("%m/%d/%Y %I:%M:%S %p"),
             "TIME OCC": report["TIME OCC"],
             "AREA": report["AREA"],
             "Rpt Dist No": report["Rpt Dist No"],
@@ -143,60 +145,53 @@ def get_first_last_info(reports_list, requerimiento, num = 10):
             al.add_last(new_list_return, extract_info(rec, requerimiento))
     return new_list_return
 
+def sort_criteria_1(element_1, element_2):
+    condition = False
+    if element_1["DATE OCC"] > element_2["DATE OCC"]:
+        condition = True
+    if element_1["DATE OCC"] == element_2["DATE OCC"]:
+        if element_1['AREA'] > element_2['AREA']:
+            condition = True
+    return condition
 
+def sort_criteria_2(element_1, element_2):
+    condition = False
+    if element_1["NUM CRIMES IC"] > element_2["NUM CRIMES IC"]:
+        condition = True
+    if element_1["NUM CRIMES IC"] == element_2["NUM CRIMES IC"]:
+        if element_1['AREA NAME'] < element_2['AREA NAME']:
+            condition = True
+    return condition
+
+# Funciones de consulta sobre el catálogo
+def get_data(catalog, id):
+    """
+    Retorna un dato por su ID.
+    """
+    #TODO: Consulta en las Llamar la función del modelo para obtener un dato
+    return bst.get(catalog["report_crimes"], id)
+
+def filtrar_por_DATE_OCC(report_crimes_DATE_OCC, fecha_inicial, fecha_final):
+    fecha_i = datetime.strptime(fecha_inicial + " 00:00:00", "%Y-%m-%d %H:%M:%S").timestamp()
+    fecha_f = datetime.strptime(fecha_final + " 23:59:59", "%Y-%m-%d %H:%M:%S").timestamp()
+    lista_values = bst.values(report_crimes_DATE_OCC, fecha_i, fecha_f)
+    lista = al.new_list()
+    for i in iterator(lista_values):
+        for j in iterator(i):
+            al.add_last(lista, j)
+    return lista
 
 def req_1(catalog, fecha_inicial, fecha_final):
-    
-    fecha_inicial = datetime.strptime(fecha_inicial, "%Y-%m-%d").timestamp()
-    fecha_final = datetime.strptime(fecha_final, "%Y-%m-%d").timestamp()
-    
-    arbol = catalog["report_crimes_DATE_OCC"]
-    lista_llaves = rbt.keys(arbol, fecha_inicial, fecha_final)
-    
-    lista_crimenes = al.new_list()
-    for i in range(sll.size(lista_llaves)):
-        elementos = sll.get_element(lista_llaves, i)
-        valor_por_llave = rbt.get(arbol, elementos)
-        for j in range(al.size(valor_por_llave)):
-            al.add_last(lista_crimenes,al.get_element(valor_por_llave, j))
-    
-    al.merge_sort(lista_crimenes, sort_criteria_req_1)
-    
-    resultado = al.new_list()
-    for i in range(al.size(lista_crimenes)):
-        c = al.get_element(lista_crimenes, i)
-        al.add_last(resultado, {
-            "DR_NO":     c["DR_NO"],
-            "DATE OCC":  c["DATE OCC"],
-            "TIME OCC":  c["TIME OCC"],
-            "AREA NAME": c["AREA NAME"],
-            "Crm Cd":    c["Crm Cd"],
-            "LOCATION":  c["LOCATION"]
-        })
-
-    return resultado
-
-def sort_criteria_req_1(r1, r2):
-    
-    if r1["DATE OCC"] > r2["DATE OCC"]:
-        
-        return True
-    
-    elif r1["DATE OCC"] < r2["DATE OCC"]:
-        
-        return False
-    
-    else:
-        
-        return r1["AREA NAME"] > r2["AREA NAME"]
-
-
-
-def req_2(catalog):
-
-    pass
-
-
+    """
+    Retorna el resultado del requerimiento 1
+    """
+    start_time = get_time()
+    report_crimes_DATE_OCC = catalog["report_crimes_DATE_OCC"]
+    report_crimes_DATE_OCC_list = filtrar_por_DATE_OCC(report_crimes_DATE_OCC, fecha_inicial, fecha_final)
+    al.merge_sort(report_crimes_DATE_OCC_list, sort_criteria_1)
+    end_time = get_time()
+    time = delta_time(start_time, end_time)
+    return round(time,3), get_first_last_info(report_crimes_DATE_OCC_list, "requerimiento_1", 10)
 
 def req_3(catalog, num_crimenes, area_ciudad):
 
@@ -234,22 +229,50 @@ def sort_criteria_req_3(r1, r2):
 
         return r1["AREA NAME"] > r2["AREA NAME"]
 
-
-
-def req_4(catalog):
+def req_5(catalog, N, fecha_inicial, fecha_final):
     """
-    Retorna el resultado del requerimiento 4
+    Retorna el resultado del requerimiento 1
     """
-    # TODO: Modificar el requerimiento 4
-    pass
-def req_5(catalog):
-    """
-    Retorna el resultado del requerimiento 5
-    """
-    # TODO: Modificar el requerimiento 5
-    pass
-
-
+    start_time = get_time()
+    report_crimes_DATE_OCC = catalog["report_crimes_DATE_OCC"]
+    report_crimes_DATE_OCC_list = filtrar_por_DATE_OCC(report_crimes_DATE_OCC, fecha_inicial, fecha_final)
+    mapa = sc.new_map(N, 2)
+    first_crime = None
+    last_crime = None
+    for i in iterator(report_crimes_DATE_OCC_list):
+        if not sc.contains(mapa, i["AREA"]):
+            diccionario = {
+                "AREA" : i["AREA"],
+                "AREA NAME" : i["AREA NAME"],
+                "NUM CRIMES IC" : 0,
+                "FIRST CRIME" : None,
+                "LAST CRIME" : None,
+                "CRIMES" : al.new_list()
+            }                
+            sc.put(mapa, i["AREA"], diccionario)
+        if i["Status"] == "IC":
+            diccionario = sc.get(mapa, i["AREA"])
+            diccionario["NUM CRIMES IC"] += 1
+            lista = diccionario["CRIMES"]
+            al.add_last(lista, i)    
+    values = sc.value_set(mapa)
+    for i in iterator(values):
+        first_crime = float('inf')
+        last_crime = float('-inf')   
+        for j in iterator(i["CRIMES"]):
+            if j["DATE OCC"] < first_crime:
+                first_crime = j["DATE OCC"]
+            if j["DATE OCC"] > last_crime:
+                last_crime = j["DATE OCC"]
+        i["FIRST CRIME"] = datetime.fromtimestamp(first_crime).strftime("%m/%d/%Y %I:%M:%S %p")
+        i["LAST CRIME"] = datetime.fromtimestamp(last_crime).strftime("%m/%d/%Y %I:%M:%S %p")
+        del i["CRIMES"]
+    sorted_values = al.merge_sort(values, sort_criteria_2)
+    if N <= al.size(sorted_values):
+        sorted_values = al.sub_list(sorted_values, 0, N)
+    end_time = get_time()
+    time = delta_time(start_time, end_time)
+    return round(time, 3), sorted_values
 
 def req_6(catalog, num_areas, sexo, mes:int):
     
@@ -460,3 +483,9 @@ def delta_time(start, end):
 
 
 
+catalog = new_logic()
+
+load_data(catalog, "Crime_in_LA_100.csv")
+
+req1 = req_5(catalog, 8, "2019-06-05", "2021-06-12")
+print(tb.tabulate(iterator(req1[1]), headers= 'keys' , tablefmt= "fancy_grid"))
