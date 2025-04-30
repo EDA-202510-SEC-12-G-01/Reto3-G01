@@ -75,28 +75,10 @@ def print_req_1(control):
     resultado = logic.req_1(control, fecha_inicial, fecha_final)
     end_time = logic.get_time()
     duracion = logic.delta_time(start_time, end_time)
-    cantidad = al.size(resultado)
     print()
     print("========================================================================================================")
     print("Tiempo de ejecución en ms: ", duracion)
-    print(f"Cantidad de crímenes ocurridos entre {fecha_inicial} y {fecha_final}: {cantidad}")
-    print()
-    if cantidad == 0:
-        print("No se encontraron registros en el rango de fechas dado.")
-    else:
-        tabla = []
-        for i in range(cantidad):
-            crimen = al.get_element(resultado, i)
-            fila = {
-                "DR_NO":     crimen["DR_NO"],
-                "DATE OCC":  datetime.fromtimestamp(crimen["DATE OCC"]).strftime("%Y-%m-%d"),
-                "TIME OCC":  crimen["TIME OCC"],
-                "AREA NAME": crimen["AREA NAME"],
-                "Crm Cd":    crimen["Crm Cd"],
-                "LOCATION":  crimen["LOCATION"]
-            }
-            tabla.append(fila)
-        print(tb.tabulate(tabla, headers="keys", tablefmt="fancy_grid"))
+    print(tb.tabulate(iterator(resultado), headers="keys", tablefmt="fancy_grid"))
     print()
 
 
@@ -125,11 +107,10 @@ def print_req_3(control):
     tabla = []
     for i in range(cantidad_mostrada):
         crimen = al.get_element(respuesta, i)
-        hora_formateada = f"{crimen['TIME OCC'] // 100:02}:{crimen['TIME OCC'] % 100:02}"
         fila = {
             "DR_NO":        crimen["DR_NO"],
-            "DATE OCC":     datetime.fromtimestamp(crimen["DATE OCC"]).strftime("%Y-%m-%d"),
-            "TIME OCC":     hora_formateada,
+            "DATE OCC":     crimen["DATE OCC"],
+            "TIME OCC":     crimen["TIME OCC"],
             "AREA":         crimen["AREA"],
             "Rpt Dist No":  crimen["Rpt Dist No"],
             "Part 1-2":     crimen["Part 1-2"],
